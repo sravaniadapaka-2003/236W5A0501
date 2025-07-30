@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <style>
+        /* Add some basic styling */
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>URL Shortener</h1>
+        <form id="url-form">
+            <label for="original-url">Original URL:</label>
+            <input type="text" id="original-url" required>
+            <button type="submit">Shorten URL</button>
+        </form>
+        <div id="results"></div>
+        <div id="statistics"></div>
+    </div>
+
+    <script>
+        // Get the form and results elements
+        const form = document.getElementById('url-form');
+        const resultsDiv = document.getElementById('results');
+        const statisticsDiv = document.getElementById('statistics');
+
+        // Add an event listener to the form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const originalUrl = document.getElementById('original-url').value;
+
+            // Validate the input (basic validation for demonstration purposes)
+            if (!originalUrl || !originalUrl.startsWith('http')) {
+                alert('Invalid URL');
+                return;
+            }
+
+            // Make a request to shorten the URL (replace with your actual API endpoint)
+            const response = await fetch('/shorten-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ originalUrl }),
+            });
+
+            const data = await response.json();
+            const shortenedUrl = data.shortenedUrl;
+            const expiryDate = data.expiryDate;
+
+            // Display the result
+            const resultHtml = `
+                <p>Original URL: ${originalUrl}</p>
+                <p>Shortened URL: <a href="${shortenedUrl}">${shortenedUrl}</a></p>
+                <p>Expiry Date: ${expiryDate}</p>
+            `;
+            resultsDiv.innerHTML += resultHtml;
+
+            // Update the statistics
+            const statistics = JSON.parse(localStorage.getItem('statistics')) || [];
+            statistics.push({ originalUrl, shortenedUrl, expiryDate });
+            localStorage.setItem('statistics', JSON.stringify(statistics));
+            displayStatistics();
+        });
+
+        // Function to display statistics
+        function displayStatistics() {
+            const statistics = JSON.parse(localStorage.getItem('statistics')) || [];
+            const statisticsHtml = statistics.map((statistic) => `
+                <p>Original URL: ${statistic.originalUrl}</p>
+                <p>Shortened URL: <a href="${statistic.shortenedUrl}">${statistic.shortenedUrl}</a></p>
+                <p>Expiry Date: ${statistic.expiryDate}</p>
+                <hr>
+            `).join('');
+            statisticsDiv.innerHTML = statisticsHtml;
+        }
+    </script>
+</body>
+</html>
